@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Swiper</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="exit_text_label">x</string>
+    <string name="add_expense_label">Add Expense</string>
+    <string name="reset_total_label">Reset Total</string>
+    <string name="add_value_label">+</string>
+</resources>

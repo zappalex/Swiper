@@ -1,0 +1,41 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="20dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="20dp">
+
+    <RelativeLayout
+        android:id="@+id/root_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/dark_grey"
+        >
+
+        <TextView
+            android:id="@+id/total_balance_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:paddingLeft="5dp"
+            android:text="tap to sync"
+            android:textColor="@color/light_grey"
+            android:clickable="true"
+            android:textSize="24sp"/>
+
+        <TextView
+            android:id="@+id/edit_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:paddingRight="10dp"
+            android:text="@string/add_value_label"
+            android:textColor="@color/white"
+            android:textSize="35sp"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>
