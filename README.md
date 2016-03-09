@@ -9,3 +9,6 @@ Android Points of Interest include:
 - How to create/ update a widget
 - How to have listener functionality on a widget
 - Use of shared preferences manager
+
+https://play.google.com/store/apps/details?id=zappalex.swiper 
+
