@@ -5,25 +5,29 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import zappalex.swiper.BalanceWidget;
+import zappalex.swiper.R;
 import zappalex.swiper.utils.FormatManager;
-import zappalex.swiper.utils.SharedPreferencesManager;
 import zappalex.swiper.utils.ValueResources;
+
+import zappalex.swiper.utils.SharedPreferencesManager;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
 
-    @Bind(R.id.total_balance_view)
-    TextView balanceView;
-    @Bind(R.id.value_input)
-    EditText valueInput;
+    private TextView balanceView;
+    private TextView secondaryBalanceView;
+    private EditText valueInput;
+    private RelativeLayout expenseButton;
+    private RelativeLayout resetButton;
+    private RelativeLayout submitButton;
 
 
 
@@ -34,15 +38,19 @@ public class MainActivity extends Activity {
     private SharedPreferencesManager mSharedPreferences;
     private FormatManager mFormatManager;
 
-    private double mTotalBalance;
+    private double mTotalBalance = 0.00;
+    private double mLastBalance = 0.00;
+    private boolean isExpense;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+
+        initViews();
 
         mContext = this;
+
         mAppWidgetManager = AppWidgetManager.getInstance(this);
         mRemoteViews = new RemoteViews(mContext.getPackageName(), R.layout.balance_widget);
         mComponentName = new ComponentName(mContext, BalanceWidget.class);
@@ -50,65 +58,86 @@ public class MainActivity extends Activity {
 
         mSharedPreferences = SharedPreferencesManager.getInstance(mContext);
         mTotalBalance = mSharedPreferences.getSharedPrefDbl(ValueResources.BALANCE_SHARED_PREF, ValueResources.DEFAULT_BALANCE_VAL);
+        mLastBalance = mSharedPreferences.getSharedPrefDbl(ValueResources.LAST_BALANCE_SHARED_PREF, ValueResources.DEFAULT_BALANCE_VAL);
+        updateBalances(mFormatManager.formatBalance(mTotalBalance), mFormatManager.formatBalance(mLastBalance));
 
-        updateBalances(mFormatManager.formatBalance(mTotalBalance));
+    }
+
+    protected void initViews(){
+        balanceView = (TextView)findViewById(R.id.total_balance_view);
+        secondaryBalanceView = (TextView)findViewById(R.id.last_balance_view);
+        valueInput = (EditText)findViewById(R.id.value_input);
+        expenseButton = (RelativeLayout)findViewById(R.id.expense_btn);
+        resetButton = (RelativeLayout)findViewById(R.id.reset_btn);
+        submitButton = (RelativeLayout)findViewById(R.id.submit);
+    }
+
+
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        isExpense = true;
 
     }
 
 
-    @OnClick(R.id.exit_btn)
-    public void onExit(){
+    protected void onExitClick(View view){
         finish();
     }
 
 
-    @OnClick(R.id.expense_btn)
-    public void onExpense(){
 
-        if(!valueInput.getText().equals(null) && !
-                valueInput.getText().toString().isEmpty()  &&
-                Double.parseDouble(valueInput.getText().toString()) < ValueResources.MAX_VAL){
+    protected void onExpenseClicked(View view){
+        expenseButton.setBackgroundColor(getResources().getColor(R.color.blue));
+        resetButton.setBackgroundColor(getResources().getColor(R.color.light_grey));
+        isExpense = true;
 
-            mTotalBalance = decreaseBalance(mTotalBalance, Double.parseDouble(valueInput.getText().toString()));
-            mSharedPreferences.setSharedPrefDbl(ValueResources.BALANCE_SHARED_PREF, mTotalBalance);
-            updateBalances(mFormatManager.formatBalance(mTotalBalance));
-
-            valueInput.setText("");
-        }
     }
 
-    @OnClick(R.id.reset_btn)
-    public void onReset(){
-        if(!valueInput.getText().equals(null) &&
+    protected void onResetClicked(View view){
+        expenseButton.setBackgroundColor(getResources().getColor(R.color.light_grey));
+        resetButton.setBackgroundColor(getResources().getColor(R.color.blue));
+        isExpense = false;
+
+    }
+
+    protected void onSubmitClicked(View view){
+        if (!valueInput.getText().equals(null) &&
                 !valueInput.getText().toString().isEmpty() &&
-                Double.parseDouble(valueInput.getText().toString()) < ValueResources.MAX_VAL){
+                Double.parseDouble(valueInput.getText().toString()) < ValueResources.MAX_VAL) {
 
-            mTotalBalance = Double.parseDouble(valueInput.getText().toString());
+            mLastBalance = mTotalBalance;
+            mSharedPreferences.setSharedPrefDbl(ValueResources.LAST_BALANCE_SHARED_PREF, mLastBalance);
+
+            if(isExpense){
+                mTotalBalance = decreaseBalance(mTotalBalance, Double.parseDouble(valueInput.getText().toString()));
+            }else{
+                mTotalBalance = Double.parseDouble(valueInput.getText().toString());
+            }
+
             mSharedPreferences.setSharedPrefDbl(ValueResources.BALANCE_SHARED_PREF, mTotalBalance);
-
-            updateBalances(mFormatManager.formatBalance(mTotalBalance));
+            updateBalances(mFormatManager.formatBalance(mTotalBalance), mFormatManager.formatBalance(mLastBalance));
             valueInput.setText("");
         }
+
     }
+
 
     protected Double decreaseBalance(Double total, Double expense){
         return total - expense;
     }
 
 
-    protected void updateBalances(String valueText){
-        updateBalanceView(valueText);
+    protected void updateBalances(String valueText, String lastValueText){
+        updateBalanceViews(valueText, lastValueText);
         updateWidgetBalance(valueText);
     }
 
-    protected void updateBalanceView(String valueText){
-
-        if(mTotalBalance < 0){
-            balanceView.setTextColor(getResources().getColor(R.color.red));
-        }else{
-            balanceView.setTextColor(getResources().getColor(R.color.green));
-        }
+    protected void updateBalanceViews(String valueText, String lastValueText){
+//        balanceView.setTextColor(getResources().getColor(R.color.green));
         balanceView.setText(valueText);
+        secondaryBalanceView.setText(lastValueText);
     }
 
     protected void updateWidgetBalance(String valueText){
